@@ -5,10 +5,8 @@ import requests
 import streamlit as st
 import config, utils
 
-st.set_page_config(page_title="YouTube 검색 시트", layout="wide")
-st.title("📺 YouTube 검색 시트")
-
-ENDPOINT = st.secrets.get("YT_SEARCH_ENDPOINT") or ""
+st.set_page_config(page_title="YouTube 쇼츠 검색기", layout="wide")
+st.title("🔎 Youtube Short 검색기")
 
 # -----------------------------
 # 세션 상태 초기화
@@ -22,7 +20,7 @@ if "yt_results_view" not in ss:
 # -----------------------------
 # 탭: 검색 / 정렬
 # -----------------------------
-search_tab, sort_tab = st.tabs(["🔎 검색", "↕️ 정렬/랭킹"])
+search_tab, sort_tab = st.tabs(["검색", "정렬"])
 
 # ▼ 페이지 맨 아래 공용 표를 그릴 '앵커'
 shared_table = st.container()
@@ -60,6 +58,7 @@ with search_tab:
             }
             with st.spinner("Youtube 검색 중..."):
                 try:
+                    ENDPOINT = st.secrets.get("YT_SEARCH_ENDPOINT") or ""
                     resp = requests.post(ENDPOINT, json=payload, timeout=60)
                     resp.raise_for_status()
                     data = resp.json()
