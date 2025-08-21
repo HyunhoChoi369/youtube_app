@@ -3,7 +3,7 @@ import json
 import io
 import pandas as pd
 import streamlit as st
-from lib import config, utils
+import config, utils
 
 st.set_page_config(page_title="YouTube 검색 시트", layout="wide")
 st.title("📺 YouTube 검색 시트")
