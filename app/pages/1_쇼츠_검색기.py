@@ -5,8 +5,8 @@ import requests
 import streamlit as st
 import config, utils
 
-st.set_page_config(page_title="YouTube 검색 시트 (Cloud Run)", layout="wide")
-st.title("📺 YouTube 검색 시트 (Cloud Run)")
+st.set_page_config(page_title="YouTube 검색 시트", layout="wide")
+st.title("📺 YouTube 검색 시트")
 
 ENDPOINT = st.secrets.get("YT_SEARCH_ENDPOINT") or ""
 
@@ -29,7 +29,7 @@ shared_table = st.container()
 
 # === 🔎 검색 탭 ===
 with search_tab:
-    st.subheader("검색 옵션 (Cloud Run POST 호출)")
+    st.subheader("검색 옵션")
 
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
@@ -140,7 +140,7 @@ with sort_tab:
 # -----------------------------
 with shared_table:
     st.divider()
-    st.subheader("📊 공용 결과 시트")
+    st.subheader("검색 결과")
     df_view = ss["yt_results_view"]
 
     if df_view.empty:
