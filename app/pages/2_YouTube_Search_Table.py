@@ -20,13 +20,13 @@ if "yt_results_raw" not in ss:
 if "yt_results_view" not in ss:
     ss["yt_results_view"] = pd.DataFrame()  # 정렬/필터 반영 뷰
 
-# ▼ 페이지 맨 아래 공용 표를 그릴 '앵커'
-shared_table = st.container()
-
 # -----------------------------
 # 탭: 검색 / 정렬
 # -----------------------------
 search_tab, sort_tab = st.tabs(["🔎 검색", "↕️ 정렬/랭킹"])
+
+# ▼ 페이지 맨 아래 공용 표를 그릴 '앵커'
+shared_table = st.container()
 
 # === 🔎 검색 탭 ===
 with search_tab:
