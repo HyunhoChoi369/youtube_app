@@ -1,7 +1,7 @@
 # pages/1_Assets_Finder.py
 import datetime as dt
 import streamlit as st
-from lib import config, providers, utils
+import config, providers, utils
 
 st.set_page_config(page_title="Assets Finder", layout="wide")
 st.title("📚 Assets Finder")
