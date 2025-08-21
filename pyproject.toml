@@ -1,15 +1,13 @@
 [project]
-name = "streamlit-folium"
-version = "0.25.1"
-description = "Render Folium objects in Streamlit"
+name = "youtube-search"
+version = "0.1.0"
+description = "A Streamlit app for searching YouTube"
 readme = "README.md"
-authors = [{ name = "Randy Zwitch", email = "rzwitch@gmail.com" }]
+authors = [{ name = "Hyunho Choi", email = "" }]
 requires-python = ">=3.9"
 dependencies = [
     "streamlit>=1.13.0",
-    "folium>=0.13,!=0.15.0",
-    "jinja2",
-    "branca",
+    "requests"
 ]
 
 [build-system]
@@ -22,10 +20,7 @@ source-include = [
     "README.md",
     "LICENSE"
 ]
-source-exclude = [
-    "streamlit_folium/frontend/node_modules/**/*",
-    "streamlit_folium/frontend/src/**/*"
-]
+
 
 [tool.ruff]
 line-length = 88
