@@ -147,17 +147,23 @@ with shared_table:
     if df_view.empty:
         st.info("아직 데이터가 없습니다. 탭에서 검색/정렬을 진행하세요.")
     else:
+        # UI에는 숨길 컬럼 (내부 데이터는 그대로 유지)
+        HIDE_COLS = ["videoId", "url"]
+
+        # 표시용 DataFrame
+        df_display = df_view.drop(columns=HIDE_COLS, errors="ignore")
+
         colcfg = {}
-        if "url" in df_view.columns:
-            colcfg["url"] = st.column_config.LinkColumn("YouTube", display_text="열기")
-        # 썸네일이 있으면 썸네일 컬럼도 보기 좋게
-        if "thumbnail" in df_view.columns:
+        if "thumbnail" in df_display.columns:
             colcfg["thumbnail"] = st.column_config.ImageColumn("썸네일", width="small")
 
-        st.dataframe(df_view, use_container_width=True, height=520, column_config=colcfg)
+        # 표 렌더(숨김 컬럼 제외)
+        st.dataframe(df_display, use_container_width=True, height=520, column_config=colcfg)
+
+        # 필요하면: 표시된 열 기준 CSV 다운로드 (숨김 열 제외)
         st.download_button(
-            "CSV 다운로드",
-            data=df_view.to_csv(index=False).encode("utf-8"),
-            file_name="youtube_results_view.csv",
+            "CSV 다운로드(표시 열만)",
+            data=df_display.to_csv(index=False).encode("utf-8"),
+            file_name="youtube_results_view_display.csv",
             mime="text/csv"
         )
