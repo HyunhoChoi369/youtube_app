@@ -10,6 +10,19 @@ st.title("📺 YouTube 검색 시트")
 
 ENDPOINT = st.secrets.get("YT_SEARCH_ENDPOINT") or ""
 
+st.markdown(
+    """
+<style>
+button {
+    height: auto;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+}
+</style>
+""",
+    unsafe_allow_html=True,
+)
+
 # -----------------------------
 # 세션 상태 초기화
 # -----------------------------
@@ -31,7 +44,7 @@ shared_table = st.container()
 with search_tab:
     st.subheader("검색 옵션")
 
-    c1, c2, c3, c4, c5, c6 = st.columns(6)
+    c1, c2, c3, c4, c5, c6 = st.columns([2,1,1,1,1,2])
     with c1:
         keyword = st.text_input("키워드*", placeholder="예: debate, 국회 본회의, economy")
     with c2:
