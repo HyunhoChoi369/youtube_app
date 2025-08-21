@@ -33,8 +33,8 @@ with search_tab:
 
     c1, c2, c3, c4, c5, c6 = st.columns([2,1,1,1,1,2])
     with c1:
-    st.caption("키워드*")
-    keyword = st.text_input("", placeholder="예: debate, 국회 본회의, economy",
+        st.caption("키워드*")
+        keyword = st.text_input("", placeholder="예: debate, 국회 본회의, economy",
                             label_visibility="collapsed")
 
     with c2:
