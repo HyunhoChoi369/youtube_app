@@ -31,19 +31,17 @@ shared_table = st.container()
 with search_tab:
     st.subheader("검색 옵션 (Cloud Run POST 호출)")
 
-    c1, c2, c3, c4, c5, c6 = st.columns(6)
+    c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
-        keyword = st.text_input("keyword*", placeholder="예: debate, 국회 본회의, economy")
+        keyword = st.text_input("키워드*", placeholder="예: debate, 국회 본회의, economy")
     with c2:
-        days = st.number_input("days", min_value=1, max_value=30, value=7, step=1)
+        days = st.number_input("검색 범위 (날짜 수)", min_value=1, max_value=30, value=7, step=1)
     with c3:
-        max_results = st.number_input("max_results", min_value=1, max_value=200, value=100, step=1)
+        max_results = st.number_input("최대 검색 영상 수", min_value=1, max_value=200, value=100, step=1)
     with c4:
-        top_n = st.number_input("top_n", min_value=1, max_value=50, value=10, step=1)
+        top_n = st.number_input("출력 상위 영상 수", min_value=1, max_value=50, value=10, step=1)
     with c5:
-        rank_by = st.selectbox("rank_by", ["score","view_count","views_per_hour","like_count","likes_per_view"], index=0)
-    with c6:
-        fmt = st.selectbox("format", ["json","values"], index=0)
+        rank_by = st.selectbox("정렬 기준", ["score","view_count","views_per_hour","like_count","likes_per_view"], index=0)
 
     run = st.button("검색 실행", type="primary", use_container_width=True)
 
@@ -57,7 +55,7 @@ with search_tab:
                 "max_results": int(max_results),
                 "top_n": int(top_n),
                 "rank_by": rank_by,
-                "format": fmt
+                "format": "json"
             }
             with st.spinner("Cloud Run 호출 중..."):
                 try:
