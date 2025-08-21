@@ -7,7 +7,6 @@ import pytz
 ISO8601_DURATION_RE = re.compile(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?")
 
 def parse_duration_iso8601(s: str) -> int:
-    """PT#H#M#S -> 초(int). 없으면 0"""
     if not isinstance(s, str):
         return 0
     m = ISO8601_DURATION_RE.fullmatch(s)
@@ -18,6 +17,7 @@ def parse_duration_iso8601(s: str) -> int:
     mnt = int(mnt) if mnt else 0
     sec = int(sec) if sec else 0
     return h*3600 + mnt*60 + sec
+
 
 def df_from_youtube_items(items: list) -> pd.DataFrame:
     """
@@ -63,70 +63,6 @@ def df_from_youtube_items(items: list) -> pd.DataFrame:
         rows.append(row)
 
     df = pd.DataFrame(rows)
-    return df
-
-def normalize_youtube_df(df: pd.DataFrame) -> pd.DataFrame:
-    """publishedAt 시간 정규화(로컬 변환), 결측 컬럼 생성"""
-    if "publishedAt" in df.columns:
-        try:
-            dt_utc = pd.to_datetime(df["publishedAt"], utc=True, errors="coerce")
-            df["publishedAt_utc"] = dt_utc
-            # KST 변환
-            df["publishedAt_local"] = dt_utc.dt.tz_convert("Asia/Seoul")
-        except Exception:
-            pass
-    if "durationSec" not in df.columns and "durationIso" in df.columns:
-        df["durationSec"] = df["durationIso"].apply(parse_duration_iso8601)
-    # shorts 후보 (<=60s)
-    if "durationSec" in df.columns:
-        df["isShorts"] = df["durationSec"].apply(lambda x: bool(x is not None and x <= 60))
-    # 정렬 돕는 숫자열 기본값
-    for k in ["viewCount","likeCount","durationSec"]:
-        if k in df.columns:
-            df[k] = pd.to_numeric(df[k], errors="coerce")
-    return df
-
-def ensure_url_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """videoId → url 컬럼 생성"""
-    if "videoId" in df.columns and "url" not in df.columns:
-        df["url"] = df["videoId"].apply(lambda v: f"https://www.youtube.com/watch?v={v}" if pd.notna(v) else None)
-    return df
-
-def add_composite_score(df: pd.DataFrame, w_recency=0.4, w_views=0.4, w_likes=0.2, w_short=0.2) -> pd.DataFrame:
-    """가중치 점수 계산(결측 컬럼은 0 취급). 값은 0~1 스케일 근사."""
-    df = df.copy()
-
-    # 최신성: 최근일수 기준 지수 스케일
-    if "publishedAt_utc" in df.columns:
-        now = pd.Timestamp.utcnow().tz_localize("UTC")
-        days = (now - df["publishedAt_utc"]).dt.total_seconds() / 86400
-        recency = 1.0 / (1.0 + (days.clip(lower=0) / 7.0))  # 0~1 사이
-    else:
-        recency = 0.0
-
-    # 조회수/좋아요: 로그 스케일
-    if "viewCount" in df.columns:
-        vc = df["viewCount"].fillna(0).clip(lower=0)
-        views = (vc.apply(lambda x: 0 if x <= 0 else min(1.0, (pd.np.log10(x+1) / 7))))  # ~10M 이상이면 상한근접
-    else:
-        views = 0.0
-    if "likeCount" in df.columns:
-        lc = df["likeCount"].fillna(0).clip(lower=0)
-        likes = (lc.apply(lambda x: 0 if x <= 0 else min(1.0, (pd.np.log10(x+1) / 6))))
-    else:
-        likes = 0.0
-
-    # 쇼츠 선호
-    if "isShorts" in df.columns:
-        shorts = df["isShorts"].apply(lambda b: 1.0 if bool(b) else 0.0)
-    else:
-        shorts = 0.0
-
-    # 결합
-    def _as_series(x):
-        return x if isinstance(x, pd.Series) else pd.Series([x]*len(df), index=df.index)
-    score = w_recency*_as_series(recency) + w_views*_as_series(views) + w_likes*_as_series(likes) + w_short*_as_series(shorts)
-    df["score"] = score.fillna(0.0)
     return df
 
 def aspect_score(w, h, prefer_vertical=True):
