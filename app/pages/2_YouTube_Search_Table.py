@@ -148,7 +148,7 @@ with shared_table:
         st.info("아직 데이터가 없습니다. 탭에서 검색/정렬을 진행하세요.")
     else:
         # UI에는 숨길 컬럼 (내부 데이터는 그대로 유지)
-        HIDE_COLS = ["videoId", "url"]
+        HIDE_COLS = ["videoId", "video_url"]
 
         # 표시용 DataFrame
         df_display = df_view.drop(columns=HIDE_COLS, errors="ignore")
