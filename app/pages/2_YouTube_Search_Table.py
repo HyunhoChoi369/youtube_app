@@ -93,7 +93,7 @@ with sort_tab:
         left, right = st.columns([2,1])
 
         with left:
-            cols = base.columns.tolist()
+            cols = [c for c in base.columns.tolist() if c not in ("videoId", "url", "video_url")]
             default_primary = "publishedAt_local" if "publishedAt_local" in cols else cols[0]
             primary = st.selectbox("1차 정렬 컬럼", cols, index=cols.index(default_primary))
             primary_asc = st.checkbox("오름차순(1차)", value=False)
@@ -148,19 +148,45 @@ with shared_table:
         st.info("아직 데이터가 없습니다. 탭에서 검색/정렬을 진행하세요.")
     else:
         # UI에는 숨길 컬럼 (내부 데이터는 그대로 유지)
-        HIDE_COLS = ["videoId", "video_url"]
+        HIDE_COLS = ["videoId", "url"]
 
-        # 표시용 DataFrame
-        df_display = df_view.drop(columns=HIDE_COLS, errors="ignore")
+        # 2) 표시용 DF 생성
+        df_display = df_view.drop(columns=HIDE_COLS, errors="ignore").copy()
 
+        # 3) video_url 컬럼 생성 보장 (우선순위: 기존 video_url → url → videoId로 생성)
+        if "video_url" not in df_display.columns:
+            if "url" in df_view.columns:
+                df_display["video_url"] = df_view["url"]
+            elif "videoId" in df_view.columns:
+                df_display["video_url"] = df_view["videoId"].apply(
+                    lambda v: f"https://www.youtube.com/watch?v={v}" if pd.notna(v) else None
+                )
+            else:
+                df_display["video_url"] = None
+
+        # 4) 제목 컬럼 바로 뒤에 video_url 배치
+        title_col = "video_title" if "video_title" in df_display.columns else ("title" if "title" in df_display.columns else None)
+        if title_col and "video_url" in df_display.columns:
+            cols = df_display.columns.tolist()
+            # 먼저 위치에서 제거
+            if "video_url" in cols:
+                cols.remove("video_url")
+            # 제목 바로 뒤 위치 계산
+            insert_pos = cols.index(title_col) + 1 if title_col in cols else 1
+            cols.insert(insert_pos, "video_url")
+            df_display = df_display[cols]
+
+        # 5) column_config: video_url을 아이콘 링크로, 썸네일은 이미지로
         colcfg = {}
+        if "video_url" in df_display.columns:
+            colcfg["video_url"] = st.column_config.LinkColumn(" ", display_text="▶️")  # 유튜브 아이콘 느낌의 플레이 버튼
         if "thumbnail" in df_display.columns:
             colcfg["thumbnail"] = st.column_config.ImageColumn("썸네일", width="small")
 
-        # 표 렌더(숨김 컬럼 제외)
+        # 6) 렌더
         st.dataframe(df_display, use_container_width=True, height=520, column_config=colcfg)
 
-        # 필요하면: 표시된 열 기준 CSV 다운로드 (숨김 열 제외)
+        # (선택) 화면에 보이는 열만 CSV로 저장 (숨김 열 제외)
         st.download_button(
             "CSV 다운로드(표시 열만)",
             data=df_display.to_csv(index=False).encode("utf-8"),
