@@ -10,17 +10,6 @@ st.title("📺 YouTube 검색 시트")
 
 ENDPOINT = st.secrets.get("YT_SEARCH_ENDPOINT") or ""
 
-st.markdown("""
-<style>
-/* 이 페이지 모든 버튼에 적용됨 */
-div.stButton > button {
-  height: 3.0rem;          /* 입력칸 높이와 맞춤 */
-  margin-top: 0.45rem;     /* 레이블 높이에 맞춰 살짝 내리기 */
-  width: 100%;
-}
-</style>
-""", unsafe_allow_html=True)
-
 # -----------------------------
 # 세션 상태 초기화
 # -----------------------------
@@ -54,6 +43,7 @@ with search_tab:
     with c5:
         rank_by = st.selectbox("정렬 기준", ["score","view_count","views_per_hour","like_count","likes_per_view"], index=0)
     with c6:
+        st.caption(" ")  # 빈 캡션으로 높이 맞춤
         run = st.button("검색 실행", type="primary", use_container_width=True)
 
     if run:
