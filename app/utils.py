@@ -1,5 +1,6 @@
 import re
 import pandas as pd
+import numpy as np
 from datetime import datetime
 import pytz
 
@@ -161,3 +162,122 @@ def csv_from_items(items):
             row.append(v)
         lines.append(",".join(row))
     return "\n".join(lines).encode("utf-8")
+
+
+def parse_duration_iso8601(s: str) -> int:
+    if not isinstance(s, str):
+        return 0
+    m = ISO8601_DURATION_RE.fullmatch(s)
+    if not m:
+        return 0
+    h, mnt, sec = m.groups()
+    h = int(h) if h else 0
+    mnt = int(mnt) if mnt else 0
+    sec = int(sec) if sec else 0
+    return h*3600 + mnt*60 + sec
+
+def df_from_service(data) -> pd.DataFrame:
+    """
+    Cloud Run 응답을 유연하게 DataFrame으로 변환.
+    지원:
+      - {"columns":[...], "values":[[...], ...]}
+      - {"items":[...]}, {"results":[...]}, {"data":[...]} 또는 리스트 자체
+    """
+    if isinstance(data, dict) and "columns" in data and "values" in data:
+        return pd.DataFrame(data["values"], columns=data["columns"])
+
+    items = None
+    if isinstance(data, dict):
+        items = data.get("items") or data.get("results") or data.get("data")
+    else:
+        items = data
+
+    if isinstance(items, list):
+        # dict 리스트면 normalize, 스칼라 리스트면 그대로 컬럼 하나
+        if items and isinstance(items[0], dict):
+            return pd.json_normalize(items)
+        return pd.DataFrame({"value": items})
+    elif isinstance(items, dict):
+        return pd.json_normalize(items)
+    else:
+        return pd.DataFrame()
+
+def normalize_youtube_df(df: pd.DataFrame) -> pd.DataFrame:
+    if "publishedAt" in df.columns:
+        try:
+            dt_utc = pd.to_datetime(df["publishedAt"], utc=True, errors="coerce")
+            df["publishedAt_utc"] = dt_utc
+            df["publishedAt_local"] = dt_utc.dt.tz_convert("Asia/Seoul")
+        except Exception:
+            pass
+    # duration
+    if "durationIso" in df.columns and "durationSec" not in df.columns:
+        df["durationSec"] = df["durationIso"].apply(parse_duration_iso8601)
+    if "duration_sec" in df.columns and "durationSec" not in df.columns:
+        df["durationSec"] = pd.to_numeric(df["duration_sec"], errors="coerce")
+
+    if "durationSec" in df.columns:
+        df["isShorts"] = df["durationSec"].apply(lambda x: bool(x is not None and x <= 60))
+
+    for k in ["viewCount","likeCount","durationSec","views_per_hour","likes_per_view","score"]:
+        if k in df.columns:
+            df[k] = pd.to_numeric(df[k], errors="coerce")
+    return df
+
+def ensure_url_columns(df: pd.DataFrame) -> pd.DataFrame:
+    if "videoId" in df.columns and "url" not in df.columns:
+        df["url"] = df["videoId"].apply(lambda v: f"https://www.youtube.com/watch?v={v}" if pd.notna(v) else None)
+    return df
+
+def standardize_cols(df: pd.DataFrame) -> pd.DataFrame:
+    """snake_case/variant 컬럼명을 통일"""
+    ren = {}
+    cols = df.columns.str.strip().tolist()
+    low = {c.lower(): c for c in cols}
+
+    def has(name): return name in low
+
+    # video id
+    if has("video_id"): ren[low["video_id"]] = "videoId"
+    # title & channel
+    if has("channel_title"): ren[low["channel_title"]] = "channelTitle"
+    # published
+    if has("published_at"): ren[low["published_at"]] = "publishedAt"
+    # counts
+    if has("view_count"): ren[low["view_count"]] = "viewCount"
+    if has("like_count"): ren[low["like_count"]] = "likeCount"
+    # duration
+    if has("durationsec"): ren[low["durationsec"]] = "durationSec"
+    if has("duration_sec"): ren[low["duration_sec"]] = "durationSec"
+
+    return df.rename(columns=ren)
+
+def add_composite_score(df: pd.DataFrame, w_recency=0.4, w_views=0.4, w_likes=0.2, w_short=0.2) -> pd.DataFrame:
+    df = df.copy()
+
+    if "publishedAt_utc" in df.columns:
+        now = pd.Timestamp.utcnow().tz_localize("UTC")
+        days = (now - df["publishedAt_utc"]).dt.total_seconds() / 86400
+        recency = 1.0 / (1.0 + (days.clip(lower=0) / 7.0))
+    else:
+        recency = pd.Series(0.0, index=df.index)
+
+    if "viewCount" in df.columns:
+        vc = df["viewCount"].fillna(0).clip(lower=0)
+        views = vc.apply(lambda x: 0 if x <= 0 else min(1.0, (np.log10(x+1) / 7)))
+    else:
+        views = pd.Series(0.0, index=df.index)
+
+    if "likeCount" in df.columns:
+        lc = df["likeCount"].fillna(0).clip(lower=0)
+        likes = lc.apply(lambda x: 0 if x <= 0 else min(1.0, (np.log10(x+1) / 6)))
+    else:
+        likes = pd.Series(0.0, index=df.index)
+
+    if "isShorts" in df.columns:
+        shorts = df["isShorts"].apply(lambda b: 1.0 if bool(b) else 0.0)
+    else:
+        shorts = pd.Series(0.0, index=df.index)
+
+    df["score"] = (w_recency*recency + w_views*views + w_likes*likes + w_short*shorts).fillna(0.0)
+    return df
