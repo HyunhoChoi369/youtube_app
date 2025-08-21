@@ -139,13 +139,6 @@ def df_from_service(data) -> pd.DataFrame:
         return pd.DataFrame()
 
 def normalize_youtube_df(df: pd.DataFrame) -> pd.DataFrame:
-    if "publishedAt" in df.columns:
-        try:
-            dt_utc = pd.to_datetime(df["publishedAt"], utc=True, errors="coerce")
-            df["publishedAt_utc"] = dt_utc
-            df["publishedAt_local"] = dt_utc.dt.tz_convert("Asia/Seoul")
-        except Exception:
-            pass
     # duration
     if "durationIso" in df.columns and "durationSec" not in df.columns:
         df["durationSec"] = df["durationIso"].apply(parse_duration_iso8601)
@@ -191,13 +184,17 @@ def standardize_cols(df: pd.DataFrame) -> pd.DataFrame:
 def add_composite_score(df: pd.DataFrame, w_recency=0.4, w_views=0.4, w_likes=0.2, w_short=0.2) -> pd.DataFrame:
     df = df.copy()
 
-    if "publishedAt_utc" in df.columns:
-        now = pd.Timestamp.utcnow().tz_localize("UTC")
-        days = (now - df["publishedAt_utc"]).dt.total_seconds() / 86400
-        recency = 1.0 / (1.0 + (days.clip(lower=0) / 7.0))
+    # ✅ 최신성: publishedAt 문자열을 바로 파싱(임시 시리즈, 컬럼 추가 안 함)
+    if "publishedAt" in df.columns:
+        dt_utc = pd.to_datetime(df["publishedAt"], utc=True, errors="coerce")
+        now_utc = pd.Timestamp.utcnow().tz_localize("UTC")
+        days = (now_utc - dt_utc).dt.total_seconds() / 86400
+        recency = 1.0 / (1.0 + (days.clip(lower=0) / 7.0))  # 0~1
+        recency = recency.fillna(0.0)
     else:
         recency = pd.Series(0.0, index=df.index)
 
+    # 조회수/좋아요 로그 스케일
     if "viewCount" in df.columns:
         vc = df["viewCount"].fillna(0).clip(lower=0)
         views = vc.apply(lambda x: 0 if x <= 0 else min(1.0, (np.log10(x+1) / 7)))
