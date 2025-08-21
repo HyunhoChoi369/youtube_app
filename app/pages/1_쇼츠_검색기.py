@@ -10,18 +10,16 @@ st.title("📺 YouTube 검색 시트")
 
 ENDPOINT = st.secrets.get("YT_SEARCH_ENDPOINT") or ""
 
-st.markdown(
-    """
+st.markdown("""
 <style>
-button {
-    height: auto;
-    padding-top: 10px !important;
-    padding-bottom: 10px !important;
+/* 이 페이지 모든 버튼에 적용됨 */
+div.stButton > button {
+  height: 3.0rem;          /* 입력칸 높이와 맞춤 */
+  margin-top: 0.45rem;     /* 레이블 높이에 맞춰 살짝 내리기 */
+  width: 100%;
 }
 </style>
-""",
-    unsafe_allow_html=True,
-)
+""", unsafe_allow_html=True)
 
 # -----------------------------
 # 세션 상태 초기화
@@ -70,7 +68,7 @@ with search_tab:
                 "rank_by": rank_by,
                 "format": "json"
             }
-            with st.spinner("Cloud Run 호출 중..."):
+            with st.spinner("Youtube 검색 중..."):
                 try:
                     resp = requests.post(ENDPOINT, json=payload, timeout=60)
                     resp.raise_for_status()
@@ -84,7 +82,7 @@ with search_tab:
 
                     ss["yt_results_raw"] = df
                     ss["yt_results_view"] = df.copy()  # 검색 직후엔 뷰 = 원본
-                    st.success(f"총 {len(df)}행 로드 완료! 아래 공용 시트에서 확인하세요.")
+                    st.success(f"총 {len(df)}행 로드 완료! 아래 검색 결과에서 확인하세요.")
                 except requests.HTTPError as e:
                     st.error(f"HTTP {e.response.status_code}: {e.response.text[:500]}")
                 except Exception as e:
