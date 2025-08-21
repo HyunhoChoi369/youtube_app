@@ -8,7 +8,6 @@ import config, utils
 st.set_page_config(page_title="YouTube 검색 시트 (Cloud Run)", layout="wide")
 st.title("📺 YouTube 검색 시트 (Cloud Run)")
 
-config.render_key_inputs()
 ENDPOINT = st.secrets.get("YT_SEARCH_ENDPOINT") or ""
 
 # -----------------------------

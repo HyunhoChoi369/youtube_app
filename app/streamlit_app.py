@@ -6,7 +6,6 @@ st.set_page_config(page_title="Shorts Asset Toolkit", layout="wide")
 st.title("🎬 Shorts Asset Toolkit")
 st.caption("정치·시사 쇼츠 제작을 위한 자료 수집/정리 도구 모음")
 
-config.render_key_inputs()
 
 st.markdown("""
 ### 무엇을 할 수 있나요?

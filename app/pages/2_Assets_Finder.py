@@ -5,7 +5,6 @@ import config, providers, utils
 
 st.set_page_config(page_title="Assets Finder", layout="wide")
 st.title("📚 Assets Finder")
-config.render_key_inputs()
 
 with st.sidebar:
     st.header("⚙️ 검색 옵션")
