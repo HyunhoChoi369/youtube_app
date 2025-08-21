@@ -33,29 +33,16 @@ with search_tab:
 
     c1, c2, c3, c4, c5, c6 = st.columns([2,1,1,1,1,2])
     with c1:
-        st.caption("키워드*")
-        keyword = st.text_input("", placeholder="예: debate, 국회 본회의, economy",
-                            label_visibility="collapsed")
-
+        keyword = st.text_input("키워드*", placeholder="예: debate, 국회 본회의, economy")
     with c2:
-        st.caption("검색 범위 (날짜 수)")
-        days = st.number_input("", 1, 30, 7, 1, label_visibility="collapsed")
-
+        days = st.number_input("검색 범위 (날짜 수)", min_value=1, max_value=30, value=7, step=1)
     with c3:
-        st.caption("최대 검색 영상 수")
-        max_results = st.number_input("", 1, 200, 100, 1, label_visibility="collapsed")
-
+        max_results = st.number_input("최대 검색 영상 수", min_value=1, max_value=200, value=100, step=1)
     with c4:
-        st.caption("출력 상위 영상 수")
-        top_n = st.number_input("", 1, 50, 10, 1, label_visibility="collapsed")
-
+        top_n = st.number_input("출력 상위 영상 수", min_value=1, max_value=50, value=10, step=1)
     with c5:
-        st.caption("정렬 기준")
-        rank_by = st.selectbox("", ["score","view_count","views_per_hour","like_count","likes_per_view"],
-                            index=0, label_visibility="collapsed")
-
+        rank_by = st.selectbox("정렬 기준", ["score","view_count","views_per_hour","like_count","likes_per_view"], index=0)
     with c6:
-        st.caption(" ")  # 빈 캡션으로 높이 맞춤
         run = st.button("검색 실행", type="primary", use_container_width=True)
 
     if run:
