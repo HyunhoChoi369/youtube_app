@@ -9,7 +9,7 @@ st.set_page_config(page_title="YouTube 검색 시트 (Cloud Run)", layout="wide"
 st.title("📺 YouTube 검색 시트 (Cloud Run)")
 
 config.render_key_inputs()
-ENDPOINT = config.get("YT_SEARCH_ENDPOINT") or "https://search-youtube-417935223154.europe-west1.run.app/search-shorts"
+ENDPOINT = st.secrets.get("YT_SEARCH_ENDPOINT") or ""
 
 # -----------------------------
 # 세션 상태 초기화
@@ -79,9 +79,6 @@ with search_tab:
                     st.error(f"HTTP {e.response.status_code}: {e.response.text[:500]}")
                 except Exception as e:
                     st.error(f"요청/파싱 실패: {e}")
-
-    st.caption("현재 엔드포인트")
-    st.code(ENDPOINT, language="text")
 
 # === ↕️ 정렬/랭킹 탭 ===
 with sort_tab:
