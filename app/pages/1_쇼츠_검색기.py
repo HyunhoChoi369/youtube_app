@@ -43,6 +43,7 @@ with search_tab:
     with c5:
         rank_by = st.selectbox("정렬 기준", ["score","view_count","views_per_hour","like_count","likes_per_view"], index=0)
     with c6:
+        st.caption(" ")
         run = st.button("검색 실행", type="primary", use_container_width=True)
 
     if run:
