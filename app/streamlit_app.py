@@ -1,6 +1,6 @@
 # app.py
 import streamlit as st
-from lib import config
+import config
 
 st.set_page_config(page_title="Shorts Asset Toolkit", layout="wide")
 st.title("🎬 Shorts Asset Toolkit")
