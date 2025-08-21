@@ -31,7 +31,7 @@ shared_table = st.container()
 with search_tab:
     st.subheader("검색 옵션")
 
-    c1, c2, c3, c4, c5 = st.columns(5)
+    c1, c2, c3, c4, c5, c6 = st.columns(6)
     with c1:
         keyword = st.text_input("키워드*", placeholder="예: debate, 국회 본회의, economy")
     with c2:
@@ -42,8 +42,8 @@ with search_tab:
         top_n = st.number_input("출력 상위 영상 수", min_value=1, max_value=50, value=10, step=1)
     with c5:
         rank_by = st.selectbox("정렬 기준", ["score","view_count","views_per_hour","like_count","likes_per_view"], index=0)
-
-    run = st.button("검색 실행", type="primary", use_container_width=True)
+    with c6:
+        run = st.button("검색 실행", type="primary", use_container_width=True)
 
     if run:
         if not keyword.strip():
