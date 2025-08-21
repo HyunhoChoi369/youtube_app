@@ -94,8 +94,13 @@ with sort_tab:
 
         with left:
             cols = [c for c in base.columns.tolist() if c not in ("videoId", "url", "video_url")]
-            default_primary = "publishedAt_local" if "publishedAt_local" in cols else cols[0]
-            primary = st.selectbox("1차 정렬 컬럼", cols, index=cols.index(default_primary))
+            cols = base.columns.tolist()
+            # publishedAt_local 제거 → publishedAt 우선, 없으면 첫 컬럼
+            default_primary = "publishedAt" if "publishedAt" in cols else (cols[0] if cols else None)
+            if default_primary:
+                primary = st.selectbox("1차 정렬 컬럼", cols, index=cols.index(default_primary))
+            else:
+                primary = st.selectbox("1차 정렬 컬럼", cols)  # 데이터가 비어있을 가능성 대비
             primary_asc = st.checkbox("오름차순(1차)", value=False)
 
             secondary = st.selectbox("2차 정렬 컬럼(선택)", ["(없음)"] + cols, index=0)
