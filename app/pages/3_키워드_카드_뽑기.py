@@ -47,7 +47,7 @@ if st.session_state.selected_keywords:
     cols = st.columns(len(st.session_state.selected_keywords))
     
     for i, keyword in enumerate(st.session_state.selected_keywords):
-        with [i]:
+        with cols[i]:
             if st.button(keyword, key=f"keyword_{i}", use_container_width=True):
                 remaining_keywords = [kw for kw in st.session_state.all_keywords if kw not in st.session_state.selected_keywords or kw == keyword]
                 if remaining_keywords:
