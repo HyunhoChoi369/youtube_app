@@ -2,6 +2,7 @@
 import streamlit as st
 import random
 import os
+from utils import load_keywords
 
 st.set_page_config(page_title="키워드 카드 뽑기", layout="wide")
 st.title("🃏 키워드 카드 뽑기")
@@ -22,15 +23,6 @@ if 'selected_keywords' not in st.session_state:
     st.session_state.selected_keywords = []
 if 'all_keywords' not in st.session_state:
     st.session_state.all_keywords = []
-
-@st.cache_data
-def load_keywords(file_path):
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            return [line.strip() for line in f if line.strip()]
-    except FileNotFoundError:
-        st.error(f"파일을 찾을 수 없습니다: {file_path}")
-        return []
 
 # 키워드 파일 경로
 keyword_file = os.path.join(os.path.dirname(__file__), "..", "keywords.txt")

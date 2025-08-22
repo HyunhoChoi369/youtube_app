@@ -1,3 +1,4 @@
+import streamlit as st
 import re
 import pandas as pd
 import numpy as np
@@ -5,6 +6,20 @@ from datetime import datetime
 import pytz
 
 ISO8601_DURATION_RE = re.compile(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?")
+
+@st.cache_data
+def load_keywords(file_path):
+    try:
+        keywords = []
+        with open(file_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('[') and not line.endswith(']'):
+                    keywords.append(line)
+        return keywords
+    except FileNotFoundError:
+        st.error(f"파일을 찾을 수 없습니다: {file_path}")
+        return []
 
 def parse_duration_iso8601(s: str) -> int:
     if not isinstance(s, str):
@@ -116,7 +131,7 @@ def df_from_service(data) -> pd.DataFrame:
     """
     Cloud Run 응답을 유연하게 DataFrame으로 변환.
     지원:
-      - {"columns":[...], "values":[[...], ...]}
+      - {"columns":[...], "values":[[...], ...]}:
       - {"items":[...]}, {"results":[...]}, {"data":[...]} 또는 리스트 자체
     """
     if isinstance(data, dict) and "columns" in data and "values" in data:
