@@ -38,12 +38,11 @@ all_keywords = load_keywords(keyword_file)
 
 if all_keywords:
     st.session_state.all_keywords = all_keywords
-    col1, col2 = st.columns([5,1])
+    
+    col1, col2, spacer = st.columns([2,1,3])
     with col1:
-        num_to_select = st.number_input("선택할 키워드 개수", min_value=1, value=3, step=1)
-
+        num_to_select = st.number_input("선택할 키워드 개수", min_value=1, value=3, step=1, label_visibility="collapsed")
     with col2:
-        st.markdown("<br>", unsafe_allow_html=True)
         pick_button_pressed = st.button("키워드 뽑기", use_container_width=True)
 
     if pick_button_pressed:
@@ -72,7 +71,7 @@ if st.session_state.selected_keywords:
     st.markdown("---")
     final_keywords = " ".join(st.session_state.selected_keywords)
     st.code(final_keywords, language="text")
-    st.success("완료! 위의 텍스트를 복사해서 사용하세요.")
+    st.success("완료!")
 else:
     if not all_keywords:
         st.warning("키워드 파일을 찾을 수 없거나 파일에 내용이 없습니다.")
