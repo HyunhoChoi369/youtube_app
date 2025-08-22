@@ -1,16 +1,18 @@
 # pages/3_키워드_카드_뽑기.py
 import streamlit as st
 import random
+import os
 
 st.set_page_config(page_title="키워드 카드 뽑기", layout="wide")
 st.title("🃏 키워드 카드 뽑기")
-st.caption("여러 키워드 중 일부를 무작위로 선택합니다. 각 키워드 버튼을 누르면 해당 카드만 다시 뽑습니다.")
+st.caption("키워드 파일에서 무작위로 선택합니다. 각 키워드 버튼을 누르면 해당 카드만 다시 뽑습니다.")
 
 st.markdown("""
 <style>
 div[data-testid="stButton"] > button {
     padding-top: 20px;
     padding-bottom: 20px;
+    font-size: 20px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -21,25 +23,35 @@ if 'selected_keywords' not in st.session_state:
 if 'all_keywords' not in st.session_state:
     st.session_state.all_keywords = []
 
-keywords_input = st.text_area(
-    "키워드 목록 (한 줄에 하나씩 입력)",
-    "고양이\n강아지\n귀여운\n재미있는\n동물\n브이로그\n일상",
-    height=200,
-)
-num_to_select = st.number_input("선택할 키워드 개수", min_value=1, value=3, step=1)
+@st.cache_data
+def load_keywords(file_path):
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            return [line.strip() for line in f if line.strip()]
+    except FileNotFoundError:
+        st.error(f"파일을 찾을 수 없습니다: {file_path}")
+        return []
 
-if st.button("키워드 뽑기", use_container_width=True):
-    if keywords_input:
-        all_keywords = [line.strip() for line in keywords_input.split('\n') if line.strip()]
-        st.session_state.all_keywords = all_keywords
+# 키워드 파일 경로
+keyword_file = os.path.join(os.path.dirname(__file__), "..", "keywords.txt")
+all_keywords = load_keywords(keyword_file)
+
+if all_keywords:
+    st.session_state.all_keywords = all_keywords
+    col1, col2 = st.columns([5,1])
+    with col1:
+        num_to_select = st.number_input("선택할 키워드 개수", min_value=1, value=3, step=1)
+
+    with col2:
+        st.markdown("<br>", unsafe_allow_html=True)
+        pick_button_pressed = st.button("키워드 뽑기", use_container_width=True)
+
+    if pick_button_pressed:
         if len(all_keywords) < num_to_select:
-            st.warning("입력된 키워드 개수보다 더 많이 선택할 수 없습니다.")
+            st.warning("키워드 파일의 키워드 개수보다 더 많이 선택할 수 없습니다.")
             st.session_state.selected_keywords = []
         else:
             st.session_state.selected_keywords = random.sample(all_keywords, int(num_to_select))
-    else:
-        st.warning("키워드를 입력해주세요.")
-        st.session_state.selected_keywords = []
 
 if st.session_state.selected_keywords:
     st.subheader("✨ 선택된 키워드:")
@@ -61,3 +73,6 @@ if st.session_state.selected_keywords:
     final_keywords = " ".join(st.session_state.selected_keywords)
     st.code(final_keywords, language="text")
     st.success("완료! 위의 텍스트를 복사해서 사용하세요.")
+else:
+    if not all_keywords:
+        st.warning("키워드 파일을 찾을 수 없거나 파일에 내용이 없습니다.")
