@@ -39,7 +39,7 @@ all_keywords = load_keywords(keyword_file)
 if all_keywords:
     st.session_state.all_keywords = all_keywords
     
-    col1, col2, spacer = st.columns([2,1,3])
+    col1, col2, spacer = st.columns([1,1,5])
     with col1:
         num_to_select = st.number_input("선택할 키워드 개수", min_value=1, value=3, step=1, label_visibility="collapsed")
     with col2:
